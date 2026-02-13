@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>JANADS | Automatización IA</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="JANADS">
+    <link rel="apple-touch-icon" href="https://api.dicebear.com/7.x/shapes/svg?seed=JANADS&backgroundColor=10b981">
+    <link rel="manifest" href="./manifest.json">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg-deep: #020617; 
+            --emerald-primary: #10b981;
+            --cyan-primary: #22d3ee;
+            --luxury-radius: 8rem;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            height: 100%; width: 100%; margin: 0; padding: 0;
+            background-color: #020617 !important; color: #f8fafc;
+            overflow-x: hidden; font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-user-select: none; user-select: none;
+        }
+        #root { 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            background-color: #020617;
+        }
+        
+        .glass {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--luxury-radius);
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            mix-blend-mode: overlay;
+        }
+
+        #emergency-loader {
+            position: fixed; inset: 0; background: #020617;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10000; opacity: 1; transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 3px solid rgba(16, 185, 129, 0.1);
+            border-top: 3px solid #10b981; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Neon Effects */
+        .neon-text-rose { text-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
+        .neon-border-rose { box-shadow: 0 0 20px rgba(244, 63, 94, 0.2); }
+        .neon-border-cyan { box-shadow: 0 0 25px rgba(34, 211, 238, 0.35); border-color: rgba(34, 211, 238, 0.4) !important; }
+        .creative-slot-glow { filter: brightness(1.15) contrast(1.05); }
+
+        /* Neural Blobs Animation */
+        @keyframes blob-animation {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(5%, -5%) scale(1.1); }
+            66% { transform: translate(-3%, 3%) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        .blob-bg {
+            animation-name: blob-animation;
+            animation-iteration-count: infinite;
+            animation-timing-function: ease-in-out;
+            filter: blur(100px);
+            opacity: 0.6;
+            will-change: transform;
+        }
+    </style>
+    <script>
+        window.hideEmergencyLoader = function() {
+            const loader = document.getElementById('emergency-loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => { if (loader) loader.style.display = 'none'; }, 500);
+            }
+        };
+
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.warn('PWA: Modo offline limitado'));
+            });
+        }
+    </script>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "@google/genai": "https://esm.sh/@google/genai@1.34.0",
+    "recharts": "https://esm.sh/recharts@2.15.0",
+    "lucide-react": "https://esm.sh/lucide-react@0.468.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+</head>
+<body>
+    <svg class="grain-overlay">
+        <filter id='noiseFilter'>
+            <feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/>
+        </filter>
+        <rect width='100%' height='100%' filter='url(#noiseFilter)'/>
+    </svg>
+
+    <div id="emergency-loader">
+        <div class="mb-8 scale-125">
+            <svg width="100" height="100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 20L169.282 60V140L100 180L30.718 140V60L100 20Z" fill="#10b981" fill-opacity="0.05" stroke="#10b981" stroke-width="2" />
+                <path d="M80 70L120 100L80 130" stroke="#22d3ee" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="100" cy="100" r="90" stroke="#10b981" stroke-width="1" stroke-dasharray="10 5" class="animate-spin" style="animation-duration: 8s" />
+            </svg>
+        </div>
+        <div class="spinner"></div>
+        <p style="margin-top: 30px; font-size: 12px; font-weight: 900; letter-spacing: 6px; color: white; text-transform: uppercase; opacity: 0.8;">JANADS OS</p>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+</body>
+</html>

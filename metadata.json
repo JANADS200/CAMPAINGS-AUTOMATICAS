@@ -1,0 +1,8 @@
+{
+  "name": "JANADS",
+  "description": "Nexo de automatización de marketing digital de élite con IA generativa Phoenix v21.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
