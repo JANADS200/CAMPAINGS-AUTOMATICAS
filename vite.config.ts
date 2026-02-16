@@ -4,17 +4,13 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // Esto asegura que process.env esté disponible en el cliente si es necesario
-    'process.env': process.env
+    // Exponer solo la variable necesaria y evitar filtrar todo process.env al cliente
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
   },
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-      },
-    },
+    // Evitar dependencia opcional de terser en entorno CI/local
+    minify: 'esbuild',
   }
 });
