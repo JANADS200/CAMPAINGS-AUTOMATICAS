@@ -173,9 +173,11 @@ export class StorageService {
   }
 
   validateAndActivate(input: string, name?: string, phone?: string): { user: User | null, error: string | null } {
+    const normalizedInput = input.trim().toUpperCase();
     const vault = this.getVaultStatus();
-    const license = vault.find(l => l.license_key === input);
-    const isMaster = input.includes('ADMIN') || input === 'JAN-MASTER-2025';
+    const license = vault.find(l => l.license_key === normalizedInput);
+    const MASTER_KEYS = new Set(['JAN-MASTER-2025', 'JAN-VANEGAS-2001', 'JAN-OWNER-2025']);
+    const isMaster = normalizedInput.includes('ADMIN') || MASTER_KEYS.has(normalizedInput);
 
     if (!license && !isMaster) {
       return { user: null, error: 'LLAVE NO ENCONTRADA EN LA BÓVEDA.' };
@@ -203,11 +205,11 @@ export class StorageService {
       return { user: null, error: 'TU ACCESO EXPIRÓ. CONTACTA AL ADMINISTRADOR.' };
     }
 
-    const existing = this.getGlobalUsers().find(u => u.license_key === input);
+    const existing = this.getGlobalUsers().find(u => u.license_key === normalizedInput);
     const user: User = {
       user_id: existing?.user_id || `u_${Date.now()}`,
-      email: existing?.email || `${input.toLowerCase()}@janads.ia`,
-      license_key: input,
+      email: existing?.email || `${normalizedInput.toLowerCase()}@janads.ia`,
+      license_key: normalizedInput,
       name: name || existing?.name || 'Agente Phoenix',
       phone: phone || existing?.phone,
       role: isMaster ? 'ADMIN' : 'USER',
@@ -226,7 +228,7 @@ export class StorageService {
       this.safeSet('jan_vault_v3', JSON.stringify(vault));
     }
 
-    this.setActiveKey(input);
+    this.setActiveKey(normalizedInput);
     this.saveSession(user);
     return { user, error: null };
   }
