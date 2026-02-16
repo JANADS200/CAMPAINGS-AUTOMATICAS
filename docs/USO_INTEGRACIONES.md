@@ -144,3 +144,13 @@ Antes de lanzar:
 - [ ] Si es video: `metadata.videoId`
 
 Si quieres, el siguiente paso que te puedo implementar es un **asistente visual en UI** que muestre este checklist y bloquee el botón de “Lanzar” hasta que todo esté en verde.
+
+
+## 7) Configuración Gemini en Netlify
+
+En Netlify configura:
+
+- `VITE_GEMINI_API_KEY`
+
+Ruta: **Site settings → Environment variables**.
+Después, haz redeploy para que la app lea la variable correctamente.

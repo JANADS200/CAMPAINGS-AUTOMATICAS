@@ -4,8 +4,12 @@ import { BusinessInfo, CampaignAsset, LaunchedCampaign, User, NeuralPersonality,
 import { dbStore } from "./storageService";
 
 export class GeminiService {
+  private getApiKey(): string {
+    return (import.meta as any)?.env?.VITE_GEMINI_API_KEY || (import.meta as any)?.env?.GEMINI_API_KEY || '';
+  }
+
   private getAI() {
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return new GoogleGenAI({ apiKey: this.getApiKey() });
   }
 
   private getCinematicStyle(personality: NeuralPersonality = 'STORYTELLER', business: BusinessInfo): string {
@@ -103,7 +107,7 @@ export class GeminiService {
     }
 
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const response = await fetch(`${downloadLink}&key=${this.getApiKey()}`);
     const buffer = await response.arrayBuffer();
     const blob = new Blob([buffer], { type: 'video/mp4' });
     return URL.createObjectURL(blob);

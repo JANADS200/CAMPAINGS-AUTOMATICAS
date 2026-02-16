@@ -3,8 +3,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessInfo, CampaignAsset } from "./types";
 
 export class GeminiService {
+  private getApiKey(): string {
+    return (import.meta as any)?.env?.VITE_GEMINI_API_KEY || (import.meta as any)?.env?.GEMINI_API_KEY || '';
+  }
+
   private getAI() {
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return new GoogleGenAI({ apiKey: this.getApiKey() });
   }
 
   async analyzeStore(url: string, language: string): Promise<any> {
@@ -59,7 +63,7 @@ export class GeminiService {
       operation = await ai.operations.getVideosOperation({ operation });
     }
     const uri = operation.response?.generatedVideos?.[0]?.video?.uri;
-    const response = await fetch(`${uri}&key=${process.env.API_KEY}`);
+    const response = await fetch(`${uri}&key=${this.getApiKey()}`);
     const buffer = await response.arrayBuffer();
     const blob = new Blob([buffer], { type: 'video/mp4' });
     return URL.createObjectURL(blob);

@@ -15,7 +15,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1hUytpQXFqjat4G9ik0eBXb
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set `VITE_GEMINI_API_KEY` in `.env.local` to your Gemini API key
 3. Run the app:
    `npm run dev`
 
@@ -24,3 +24,12 @@ View your app in AI Studio: https://ai.studio/apps/drive/1hUytpQXFqjat4G9ik0eBXb
 Si quieres saber exactamente cómo usar los flujos técnicos implementados y los pasos operativos:
 
 - Revisa: [`docs/USO_INTEGRACIONES.md`](docs/USO_INTEGRACIONES.md)
+
+
+## Netlify (variables de entorno)
+
+Para que Gemini funcione en producción en Netlify, crea esta variable en **Site settings → Environment variables**:
+
+- `VITE_GEMINI_API_KEY` = tu API key de Gemini
+
+Luego dispara un nuevo deploy.
