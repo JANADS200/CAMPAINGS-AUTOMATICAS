@@ -1,6 +1,9 @@
 [build]
-  command = "npm run build"
+  # Keep command explicit to avoid stale cached scripts on CI
+  command = "npx tsc --noEmit && npx vite build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "22"
+  # Ensure devDependencies (typescript/vite) are installed in CI
+  NPM_FLAGS = "--include=dev"
