@@ -7,3 +7,4 @@
   NODE_VERSION = "22"
   # Ensure devDependencies (typescript/vite) are installed in CI
   NPM_FLAGS = "--include=dev"
+  NPM_CONFIG_PRODUCTION = "false"
