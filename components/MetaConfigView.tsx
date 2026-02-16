@@ -195,11 +195,11 @@ export const MetaConfigView: React.FC<MetaConfigViewProps> = ({ business, setBus
               </div>
               
               <div className="bg-black/60 rounded-[2.5rem] p-8 h-80 overflow-y-auto custom-scrollbar font-mono text-[11px] space-y-4 text-cyan-400 shadow-inner border border-white/5">
-                {scanLogs.length === 0 && <p className="opacity-30 italic">{'>'} Esperando instrucción de barrido...</p>}
+                {scanLogs.length === 0 && <p className="opacity-30 italic">&gt; Esperando instrucción de barrido...</p>}
                 {scanLogs.map((log, i) => (
                   <p key={i} className="animate-fadeIn border-l border-white/10 pl-4">{log}</p>
                 ))}
-                {isScanning && <p className="animate-pulse text-white pl-4">{'>'} ESCANEANDO NODOS...</p>}
+                {isScanning && <p className="animate-pulse text-white pl-4">&gt; ESCANEANDO NODOS...</p>}
               </div>
 
               <div className="pt-6 border-t border-white/5 grid grid-cols-5 gap-2 text-center">
