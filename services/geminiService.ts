@@ -76,7 +76,7 @@ export class GeminiService {
       contents: { parts }, 
       config: { imageConfig: { aspectRatio: "9:16", imageSize: "1K" } } 
     });
-    const part = res.candidates?.[0]?.content?.parts.find(p => p.inlineData);
+    const part = res.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
     return part?.inlineData ? `data:image/png;base64,${part.inlineData.data}` : "";
   }
 

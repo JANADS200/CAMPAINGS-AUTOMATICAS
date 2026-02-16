@@ -259,14 +259,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ campaigns = [], setCampaig
                     <div className="absolute top-0 right-0 p-8 opacity-5"><Terminal size={120} className="text-rose-500" /></div>
                     <h4 className="text-[11px] font-black text-rose-500 uppercase tracking-widest mb-6 flex items-center gap-3 relative z-10"><Terminal size={16} /> IA OPTIMIZER LOG v4.1</h4>
                     <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-[11px] space-y-4 pr-4 relative z-10">
-                       <p className="text-emerald-500 animate-pulse italic">> Sincronización Phoenix Establecida...</p>
-                       <p className="text-slate-600 italic">> Analizando micro-conversiones en tiempo real...</p>
+                       <p className="text-emerald-500 animate-pulse italic">{'>'} Sincronización Phoenix Establecida...</p>
+                       <p className="text-slate-600 italic">{'>'} Analizando micro-conversiones en tiempo real...</p>
                        {logs.map((l, i) => (
                          <div key={i} className={`p-4 rounded-2xl ${l.role === 'user' ? 'bg-white/5 border border-white/5 ml-6' : 'bg-rose-500/5 border border-rose-500/10'}`}>
                             <p className={l.role === 'user' ? 'text-white font-bold' : 'text-slate-400 font-medium'}>{l.role === 'user' ? '> ' : 'IA: '}{l.text}</p>
                          </div>
                        ))}
-                       {isProcessingInput && <p className="text-cyan-400 animate-pulse">> PENSANDO...</p>}
+                       {isProcessingInput && <p className="text-cyan-400 animate-pulse">{'>'} PENSANDO...</p>}
                     </div>
                     <div className="mt-6 relative z-10">
                       <input 

@@ -1,6 +1,12 @@
 
 import { MetaAsset } from '../types';
 
+export interface TikTokIntegrationCheck {
+  step: 'AUTH' | 'CAMPAIGN_CREATE' | 'AD_CREATE' | 'PUBLISH';
+  ok: boolean;
+  message: string;
+}
+
 /**
  * Valida credenciales de TikTok
  */
@@ -62,4 +68,14 @@ export const fetchTikTokAssets = async (accessToken: string, appId: string) => {
     console.error("TikTok Ads Sync Error:", error);
     return result;
   }
+};
+
+export const runTikTokIntegrationCheck = async (accessToken: string, appId: string): Promise<TikTokIntegrationCheck[]> => {
+  const auth = await validateTikTokCredentials(accessToken, appId);
+  return [
+    { step: 'AUTH', ok: auth.valid, message: auth.message },
+    { step: 'CAMPAIGN_CREATE', ok: false, message: 'Pendiente endpoint de creación de campaña (requiere backend firmado).' },
+    { step: 'AD_CREATE', ok: false, message: 'Pendiente endpoint de creación de adgroup/ad en backend.' },
+    { step: 'PUBLISH', ok: false, message: 'Pendiente flujo real de publicación con lectura de estado final.' }
+  ];
 };

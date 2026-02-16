@@ -17,7 +17,9 @@ export interface User {
   role: 'ADMIN' | 'USER';
   deviceId?: string;
   registeredAt?: string;
+  lastLoginAt?: string;
 }
+
 
 export interface MetaAsset {
   id: string;
@@ -131,9 +133,19 @@ export interface LabTaskState {
 export interface MetaTargetingSpec {
   type: 'BROAD' | 'INTERESTS' | 'RETARGETING';
   interests?: string[];
+  excludedInterests?: string[];
+  behaviors?: string[];
   ageMin?: number;
   ageMax?: number;
   genders?: number[];
+  countries?: string[];
+  cities?: string[];
+  languages?: number[];
+  publisherPlatforms?: ('facebook' | 'instagram' | 'audience_network' | 'messenger')[];
+  devicePlatforms?: ('mobile' | 'desktop')[];
+  customAudienceIds?: string[];
+  excludedCustomAudienceIds?: string[];
+  lookalikeSourceAudienceId?: string;
 }
 
 export interface MarketingStrategy {
@@ -255,6 +267,7 @@ export interface License {
   durationDays: number;
   activatedAt?: string;
   expiry?: string;
+  isEnabled?: boolean;
 }
 
 export interface MasterSystemConfig {

@@ -53,8 +53,8 @@ export const SetupWizard: React.FC<{ onComplete: (info: BusinessInfo) => void }>
   useEffect(() => {
     const check = async () => {
       try {
-        const sel = await window.aistudio.hasSelectedApiKey();
-        setHasApiKey(sel);
+        const sel = await window.aistudio?.hasSelectedApiKey?.();
+        setHasApiKey(sel ?? false);
       } catch { setHasApiKey(false); }
     };
     check();
@@ -62,7 +62,7 @@ export const SetupWizard: React.FC<{ onComplete: (info: BusinessInfo) => void }>
 
   const handleLinkApiKey = async () => {
     try {
-      await window.aistudio.openSelectKey();
+      await window.aistudio?.openSelectKey?.();
       setHasApiKey(true);
     } catch (e) {
       console.error("Fallo al abrir selección de llave:", e);

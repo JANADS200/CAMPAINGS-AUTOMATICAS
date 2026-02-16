@@ -157,8 +157,8 @@ export const TikTokConfigView: React.FC<TikTokConfigViewProps> = ({ business, se
                     <h4 className="text-sm font-black uppercase tracking-[0.4em]">UGC VIRAL MONITOR</h4>
                  </div>
                  <div className="bg-black/80 rounded-[3rem] p-10 h-72 overflow-y-auto custom-scrollbar font-mono text-[11px] space-y-4 text-cyan-400/80 border border-white/5 shadow-inner">
-                   {scanLogs.map((log, i) => <p key={i} className="animate-fadeIn border-l border-cyan-500/30 pl-4">> {log}</p>)}
-                   {isScanning && <p className="animate-pulse text-white pl-4">> ESTABLECIENDO NODO UGC...</p>}
+                   {scanLogs.map((log, i) => <p key={i} className="animate-fadeIn border-l border-cyan-500/30 pl-4">{'>'} {log}</p>)}
+                   {isScanning && <p className="animate-pulse text-white pl-4">{'>'} ESTABLECIENDO NODO UGC...</p>}
                  </div>
                  <div className="pt-8 border-t border-white/5 flex items-center gap-6">
                     <TrendingUp className="text-emerald-500" size={24} />

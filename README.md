@@ -18,3 +18,9 @@ View your app in AI Studio: https://ai.studio/apps/drive/1hUytpQXFqjat4G9ik0eBXb
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Guía de uso de integraciones (Meta, Video, WhatsApp, Google, TikTok)
+
+Si quieres saber exactamente cómo usar los flujos técnicos implementados y los pasos operativos:
+
+- Revisa: [`docs/USO_INTEGRACIONES.md`](docs/USO_INTEGRACIONES.md)

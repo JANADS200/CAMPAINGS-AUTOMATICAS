@@ -1,6 +1,12 @@
 
 import { MetaAsset } from '../types';
 
+export interface IntegrationCheck {
+  step: 'AUTH' | 'CAMPAIGN_CREATE' | 'AD_CREATE' | 'PUBLISH';
+  ok: boolean;
+  message: string;
+}
+
 /**
  * Valida credenciales de Google Ads
  */
@@ -78,4 +84,14 @@ export const fetchGoogleAssets = async (accessToken: string, developerToken: str
     console.error("Google Ads Sync Error:", error);
     return result;
   }
+};
+
+export const runGoogleIntegrationCheck = async (accessToken: string, developerToken: string): Promise<IntegrationCheck[]> => {
+  const auth = await validateGoogleCredentials(accessToken, developerToken);
+  return [
+    { step: 'AUTH', ok: auth.valid, message: auth.message },
+    { step: 'CAMPAIGN_CREATE', ok: false, message: 'Pendiente implementar endpoint de creación de campaña en backend seguro.' },
+    { step: 'AD_CREATE', ok: false, message: 'Pendiente implementar endpoint de creación de anuncios en backend seguro.' },
+    { step: 'PUBLISH', ok: false, message: 'Pendiente flujo real de publicación y verificación de estado.' }
+  ];
 };

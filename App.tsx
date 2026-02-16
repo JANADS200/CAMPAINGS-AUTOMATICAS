@@ -151,6 +151,19 @@ const App: React.FC = () => {
   useEffect(() => { init(); }, [init]);
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      const liveSession = dbStore.getSession();
+      if (!liveSession && userSession) {
+        setUserSession(null);
+        setActiveView('dashboard');
+      }
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [userSession]);
+
+
+  useEffect(() => {
     if (userSession && isReady) {
       dbStore.saveBusinessInfo(business);
       dbStore.saveCreativeSlots(creativeSlots);

@@ -12,10 +12,10 @@ export const PROVEN_STRATEGIES: MarketingStrategy[] = [
     minBudget: 100000,
     platforms: ['META'],
     structure: [
-      { name: "C1: Prospecting - Broad Absoluto", budgetPercentage: 30, funnelStage: 'COLD', targeting: { type: 'BROAD' } },
-      { name: "C2: High-Intent - Marketing & Business", budgetPercentage: 30, funnelStage: 'COLD', targeting: { type: 'INTERESTS', interests: ['Business', 'E-commerce'] } },
-      { name: "C3: Lookalike Expansion", budgetPercentage: 20, funnelStage: 'WARM', targeting: { type: 'RETARGETING' } },
-      { name: "C4: Retargeting - Engagers", budgetPercentage: 20, funnelStage: 'HOT', targeting: { type: 'RETARGETING' } }
+      { name: "C1: Prospecting - Broad Absoluto", budgetPercentage: 30, funnelStage: 'COLD', targeting: { type: 'BROAD', countries: ['US','MX','CO','ES'], ageMin: 21, ageMax: 55, publisherPlatforms: ['facebook','instagram'], devicePlatforms: ['mobile','desktop'] } },
+      { name: "C2: High-Intent - Marketing & Business", budgetPercentage: 30, funnelStage: 'COLD', targeting: { type: 'INTERESTS', interests: ['Business', 'E-commerce', 'Online advertising', 'Digital marketing'], excludedInterests: ['Couponing'], behaviors: ['Engaged Shoppers'], ageMin: 23, ageMax: 50, countries: ['US','MX','CO','ES'] } },
+      { name: "C3: Lookalike Expansion", budgetPercentage: 20, funnelStage: 'WARM', targeting: { type: 'RETARGETING', countries: ['US','MX','CO','ES'], excludedInterests: ['Job hunting'] } },
+      { name: "C4: Retargeting - Engagers", budgetPercentage: 20, funnelStage: 'HOT', targeting: { type: 'RETARGETING', countries: ['US','MX','CO','ES'] } }
     ],
     segmentationLogic: 'Estructura 3-Tier: Conquista de audiencias frías y cierre por comportamiento.',
     detailedSegmentation: 'Optimización Advantage+ con expansión de intereses activada.',
@@ -290,4 +290,28 @@ export const PROVEN_STRATEGIES: MarketingStrategy[] = [
     detailedSegmentation: 'Identificación de "Winning Ads" en segundos.',
     platformDetails: [{ platform: 'META', format: '9:16', items: ['Shadow Reels'] }]
   }
+,
+  {
+    id: 'phoenix_roi_engine',
+    name: '21. PHOENIX ROI ENGINE (ADAPTIVE FULL-FUNNEL)',
+    category: 'OMNICHANNEL',
+    creativesNeeded: 24,
+    description: 'Estrategia adaptable de alto ROI para casi cualquier negocio con segmentación por intención, exclusiones y retargeting progresivo.',
+    objective: 'OUTCOME_SALES',
+    minBudget: 80000,
+    platforms: ['META', 'GOOGLE', 'TIKTOK'],
+    structure: [
+      { name: 'R1: Intent Discovery (Cold)', budgetPercentage: 45, funnelStage: 'COLD', targeting: { type: 'INTERESTS', interests: ['Online shopping', 'Small business owners', 'Digital content'], behaviors: ['Engaged Shoppers'], excludedInterests: ['Freebies'], countries: ['US','MX','CO','ES'], ageMin: 23, ageMax: 54, publisherPlatforms: ['facebook','instagram'] } },
+      { name: 'R2: Consideration Booster (Warm)', budgetPercentage: 30, funnelStage: 'WARM', targeting: { type: 'RETARGETING', countries: ['US','MX','CO','ES'], ageMin: 22, ageMax: 55 } },
+      { name: 'R3: Conversion Capture (Hot)', budgetPercentage: 25, funnelStage: 'HOT', targeting: { type: 'RETARGETING', countries: ['US','MX','CO','ES'], ageMin: 21, ageMax: 60, devicePlatforms: ['mobile'] } }
+    ],
+    segmentationLogic: 'Prospecting por intención + exclusiones para limpiar tráfico + retargeting por señales de valor y ventana temporal.',
+    detailedSegmentation: 'Aísla compradores recientes, prioriza mobile en hot traffic, y usa audiencias de video/engagement para mejorar costo por adquisición.',
+    platformDetails: [
+      { platform: 'META', format: '9:16', items: ['Video hooks', 'Retargeting testimonial', 'Offer-close creatives'] },
+      { platform: 'GOOGLE', format: 'TEXT', items: ['High-intent search mirror'] },
+      { platform: 'TIKTOK', format: '9:16', items: ['UGC proof creatives'] }
+    ]
+  }
+
 ];

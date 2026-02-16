@@ -1,5 +1,14 @@
+import { License, User, PendingCampaign, StoredAsset, MasterSystemConfig, BusinessInfo, ADNProcessState, CreativeSlot, LaunchedCampaign, CampaignAsset } from '../types';
 
-import { License, User, PendingCampaign, StoredAsset, MasterSystemConfig, BusinessInfo, ADNProcessState, CreativeSlot, LabTaskState, LaunchedCampaign, CampaignAsset } from '../types';
+export interface AdminClientRow {
+  licenseKey: string;
+  licensePlan: string;
+  isEnabled: boolean;
+  licenseStatus: 'available' | 'active';
+  expiry?: string;
+  activatedAt?: string;
+  user?: User;
+}
 
 export class StorageService {
   private activeKey: string | null = null;
@@ -8,34 +17,52 @@ export class StorageService {
   constructor() {
     try {
       this.activeKey = localStorage.getItem('jan_last_active_key');
-    } catch (e) { this.activeKey = null; }
+    } catch {
+      this.activeKey = null;
+    }
   }
 
   private safeSet(key: string, value: string) {
-    try { localStorage.setItem(key, value); } 
-    catch (e) { this.memoryStorage[key] = value; }
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      this.memoryStorage[key] = value;
+    }
   }
 
   private safeGet(key: string): string | null {
-    try { return localStorage.getItem(key) || this.memoryStorage[key] || null; } 
-    catch (e) { return this.memoryStorage[key] || null; }
+    try {
+      return localStorage.getItem(key) || this.memoryStorage[key] || null;
+    } catch {
+      return this.memoryStorage[key] || null;
+    }
   }
 
   private getStorageKey(base: string): string {
     return `${base}_${this.activeKey || 'anonymous'}`;
   }
 
+  private normalizeLicense(license: License): License {
+    return {
+      ...license,
+      isEnabled: license.isEnabled !== false
+    };
+  }
+
+  private persistGlobalUsers(users: User[]): void {
+    this.safeSet('jan_global_users', JSON.stringify(users));
+  }
+
   async syncFromCloud(licenseKey: string): Promise<BusinessInfo | null> {
     return null;
   }
 
-  // --- PERSISTENCIA DE ACTIVOS ---
   saveAsset(asset: CampaignAsset, business: BusinessInfo): void {
     const key = this.getStorageKey('jan_assets');
     const raw = this.safeGet(key);
     let assets: StoredAsset[] = [];
     try { assets = raw ? JSON.parse(raw) : []; } catch { assets = []; }
-    
+
     if (assets.find(a => a.url === asset.url)) return;
 
     const stored: StoredAsset = {
@@ -45,13 +72,13 @@ export class StorageService {
       createdAt: new Date().toISOString(),
       aiMetadata: {
         model: 'Gemini 3 Pro',
-        prompt: asset.metadata?.visual_direction || "Auto-Generated",
-        bias: "Conversion Optimized",
+        prompt: asset.metadata?.visual_direction || 'Auto-Generated',
+        bias: 'Conversion Optimized',
         score: 8.5 + (Math.random() * 1.5),
         language: business.language
       }
     };
-    
+
     assets.unshift(stored);
     this.safeSet(key, JSON.stringify(assets.slice(0, 100)));
     window.dispatchEvent(new Event('gallery_updated'));
@@ -68,7 +95,6 @@ export class StorageService {
     window.dispatchEvent(new Event('gallery_updated'));
   }
 
-  // --- CAMPAÑAS ---
   saveLaunchedCampaign(camp: LaunchedCampaign): void {
     const key = this.getStorageKey('jan_launched_campaigns');
     const raw = this.safeGet(key);
@@ -84,82 +110,119 @@ export class StorageService {
     try { return raw ? JSON.parse(raw) : []; } catch { return []; }
   }
 
-  // --- CONFIGURACIÓN DE NEGOCIO ---
-  saveBusinessInfo(info: BusinessInfo): void { 
+  saveBusinessInfo(info: BusinessInfo): void {
     this.safeSet(this.getStorageKey('iajanads_business_v3'), JSON.stringify(info));
   }
-  
-  getBusinessInfo(fallback: BusinessInfo): BusinessInfo { 
+
+  getBusinessInfo(fallback: BusinessInfo): BusinessInfo {
     const local = this.safeGet(this.getStorageKey('iajanads_business_v3'));
     if (!local) return fallback;
-    try { 
+    try {
       const parsed = JSON.parse(local);
       if (!parsed.metaConfig?.accessToken && fallback.metaConfig?.accessToken) {
         parsed.metaConfig.accessToken = fallback.metaConfig.accessToken;
       }
-      return { ...fallback, ...parsed }; 
-    } catch { return fallback; }
-  }
-
-  // --- SESIÓN Y USUARIOS CRM ---
-  getSession(): User | null { 
-    const data = this.safeGet('jan_session_active');
-    try { if (data) return JSON.parse(data); } catch {}
-    return null; 
-  }
-
-  saveSession(user: User): void { 
-    this.safeSet('jan_session_active', JSON.stringify(user)); 
-    // Registrar en CRM Global
-    const users = this.getGlobalUsers();
-    if (!users.find(u => u.license_key === user.license_key)) {
-      users.push(user);
-      this.safeSet('jan_global_users', JSON.stringify(users));
+      return { ...fallback, ...parsed };
+    } catch {
+      return fallback;
     }
   }
 
-  setActiveKey(key: string) { 
-    this.activeKey = key; 
-    this.safeSet('jan_last_active_key', key); 
+  getSession(): User | null {
+    const data = this.safeGet('jan_session_active');
+    try {
+      if (!data) return null;
+      const session: User = JSON.parse(data);
+      const vault = this.getVaultStatus();
+      const license = vault.find(l => l.license_key === session.license_key);
+
+      if (license && license.isEnabled === false) {
+        this.safeSet('jan_session_active', '');
+        return null;
+      }
+
+      if (session.access_until && new Date(session.access_until).getTime() < Date.now()) {
+        session.status = 'expired';
+        this.upsertGlobalUser(session);
+        this.safeSet('jan_session_active', '');
+        return null;
+      }
+
+      return session;
+    } catch {
+      return null;
+    }
   }
 
-  validateAndActivate(input: string, name?: string, phone?: string): { user: User | null, error: string | null } { 
+  private upsertGlobalUser(user: User): void {
+    const users = this.getGlobalUsers();
+    const idx = users.findIndex(u => u.license_key === user.license_key);
+    if (idx >= 0) users[idx] = { ...users[idx], ...user };
+    else users.unshift(user);
+    this.persistGlobalUsers(users);
+  }
+
+  saveSession(user: User): void {
+    this.safeSet('jan_session_active', JSON.stringify(user));
+    this.upsertGlobalUser(user);
+  }
+
+  setActiveKey(key: string) {
+    this.activeKey = key;
+    this.safeSet('jan_last_active_key', key);
+  }
+
+  validateAndActivate(input: string, name?: string, phone?: string): { user: User | null, error: string | null } {
     const vault = this.getVaultStatus();
     const license = vault.find(l => l.license_key === input);
-
-    // Bypass para ADMIN maestro si no hay licencias o llave específica
     const isMaster = input.includes('ADMIN') || input === 'JAN-MASTER-2025';
 
     if (!license && !isMaster) {
-      return { user: null, error: "LLAVE NO ENCONTRADA EN LA BÓVEDA." };
+      return { user: null, error: 'LLAVE NO ENCONTRADA EN LA BÓVEDA.' };
     }
 
-    if (license && license.status === 'active' && license.license_key !== input) {
-        // En un sistema real verificaríamos deviceId, aquí permitimos re-login
+    if (license && license.isEnabled === false) {
+      return { user: null, error: 'ACCESO DESHABILITADO POR ADMINISTRADOR.' };
     }
 
-    const durationDays = license?.durationDays || 3650;
-    const expiry = new Date();
-    expiry.setDate(expiry.getDate() + durationDays);
+    const now = new Date();
+    let expiry = new Date();
 
-    const user: User = { 
-      user_id: `u_${Date.now()}`,
-      email: `${input.toLowerCase()}@janads.ia`,
-      license_key: input, 
-      name: name || 'Agente Phoenix', 
-      phone, 
-      role: isMaster ? 'ADMIN' : 'USER', 
-      plan: license?.plan || 'GOD MODE UNLIMITED', 
-      status: 'active', 
+    if (license?.expiry) {
+      expiry = new Date(license.expiry);
+    } else {
+      const durationDays = license?.durationDays || 3650;
+      expiry.setDate(expiry.getDate() + durationDays);
+    }
+
+    if (expiry.getTime() < now.getTime()) {
+      if (license) {
+        license.isEnabled = false;
+        this.safeSet('jan_vault_v3', JSON.stringify(vault));
+      }
+      return { user: null, error: 'TU ACCESO EXPIRÓ. CONTACTA AL ADMINISTRADOR.' };
+    }
+
+    const existing = this.getGlobalUsers().find(u => u.license_key === input);
+    const user: User = {
+      user_id: existing?.user_id || `u_${Date.now()}`,
+      email: existing?.email || `${input.toLowerCase()}@janads.ia`,
+      license_key: input,
+      name: name || existing?.name || 'Agente Phoenix',
+      phone: phone || existing?.phone,
+      role: isMaster ? 'ADMIN' : 'USER',
+      plan: license?.plan || existing?.plan || 'GOD MODE UNLIMITED',
+      status: 'active',
       access_until: expiry.toISOString(),
-      registeredAt: new Date().toISOString()
+      registeredAt: existing?.registeredAt || new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
     };
 
-    // Marcar licencia como usada en la bóveda
     if (license) {
       license.status = 'active';
-      license.activatedAt = new Date().toISOString();
+      license.activatedAt = license.activatedAt || new Date().toISOString();
       license.expiry = expiry.toISOString();
+      license.isEnabled = license.isEnabled !== false;
       this.safeSet('jan_vault_v3', JSON.stringify(vault));
     }
 
@@ -168,20 +231,59 @@ export class StorageService {
     return { user, error: null };
   }
 
-  getVaultStatus(): License[] { 
-    const raw = this.safeGet('jan_vault_v3'); 
-    return raw ? JSON.parse(raw) : []; 
+  getVaultStatus(): License[] {
+    const raw = this.safeGet('jan_vault_v3');
+    try {
+      const data: License[] = raw ? JSON.parse(raw) : [];
+      return data.map(l => this.normalizeLicense(l));
+    } catch {
+      return [];
+    }
   }
 
   addLicense(license: License): void {
     const vault = this.getVaultStatus();
-    vault.push(license);
+    const prepared = this.normalizeLicense(license);
+    if (vault.some(l => l.license_key === prepared.license_key)) return;
+    vault.push(prepared);
     this.safeSet('jan_vault_v3', JSON.stringify(vault));
   }
 
   deleteLicense(key: string): void {
     const vault = this.getVaultStatus();
     this.safeSet('jan_vault_v3', JSON.stringify(vault.filter(l => l.license_key !== key)));
+
+    const users = this.getGlobalUsers().filter(u => u.license_key !== key);
+    this.persistGlobalUsers(users);
+
+    const session = this.getSession();
+    if (session?.license_key === key) {
+      this.safeSet('jan_session_active', '');
+    }
+  }
+
+  setLicenseAccess(licenseKey: string, enabled: boolean): void {
+    const vault = this.getVaultStatus();
+    const idx = vault.findIndex(l => l.license_key === licenseKey);
+    if (idx === -1) return;
+
+    vault[idx].isEnabled = enabled;
+    if (!enabled) {
+      vault[idx].status = 'available';
+    }
+    this.safeSet('jan_vault_v3', JSON.stringify(vault));
+
+    const users = this.getGlobalUsers();
+    const uIdx = users.findIndex(u => u.license_key === licenseKey);
+    if (uIdx >= 0) {
+      users[uIdx].status = enabled ? 'active' : 'expired';
+      this.persistGlobalUsers(users);
+    }
+
+    const session = this.getSession();
+    if (!enabled && session?.license_key === licenseKey) {
+      this.safeSet('jan_session_active', '');
+    }
   }
 
   getGlobalUsers(): User[] {
@@ -190,28 +292,59 @@ export class StorageService {
     try { return raw ? JSON.parse(raw) : []; } catch { return []; }
   }
 
-  getMasterSystemConfig(): MasterSystemConfig { 
-    return JSON.parse(this.safeGet('jan_master_config_v2') || '{"metaAppId":"1167223758233968"}'); 
+  getAdminClientRows(): AdminClientRow[] {
+    const vault = this.getVaultStatus();
+    const users = this.getGlobalUsers();
+
+    const rows: AdminClientRow[] = vault.map(v => ({
+      licenseKey: v.license_key,
+      licensePlan: v.plan,
+      isEnabled: v.isEnabled !== false,
+      licenseStatus: v.status,
+      expiry: v.expiry,
+      activatedAt: v.activatedAt,
+      user: users.find(u => u.license_key === v.license_key)
+    }));
+
+    const orphanUsers = users.filter(u => !vault.find(v => v.license_key === u.license_key));
+    orphanUsers.forEach(u => rows.push({
+      licenseKey: u.license_key,
+      licensePlan: u.plan,
+      isEnabled: true,
+      licenseStatus: u.status === 'active' ? 'active' : 'available',
+      expiry: u.access_until,
+      user: u
+    }));
+
+    return rows.sort((a, b) => {
+      const aDate = a.user?.lastLoginAt || a.user?.registeredAt || '';
+      const bDate = b.user?.lastLoginAt || b.user?.registeredAt || '';
+      return bDate.localeCompare(aDate);
+    });
   }
 
-  saveMasterSystemConfig(c: MasterSystemConfig): void { 
-    this.safeSet('jan_master_config_v2', JSON.stringify(c)); 
+  getMasterSystemConfig(): MasterSystemConfig {
+    return JSON.parse(this.safeGet('jan_master_config_v2') || '{"metaAppId":"1167223758233968"}');
   }
 
-  saveCreativeSlots(s: CreativeSlot[]): void { 
-    this.safeSet(this.getStorageKey('jan_creative_slots_v3'), JSON.stringify(s)); 
+  saveMasterSystemConfig(c: MasterSystemConfig): void {
+    this.safeSet('jan_master_config_v2', JSON.stringify(c));
   }
 
-  getCreativeSlots(): CreativeSlot[] { 
-    return JSON.parse(this.safeGet(this.getStorageKey('jan_creative_slots_v3')) || '[]'); 
+  saveCreativeSlots(s: CreativeSlot[]): void {
+    this.safeSet(this.getStorageKey('jan_creative_slots_v3'), JSON.stringify(s));
   }
 
-  saveADNTask(t: ADNProcessState): void { 
-    this.safeSet(this.getStorageKey('jan_adn_task'), JSON.stringify(t)); 
+  getCreativeSlots(): CreativeSlot[] {
+    return JSON.parse(this.safeGet(this.getStorageKey('jan_creative_slots_v3')) || '[]');
   }
 
-  getADNTask(): ADNProcessState { 
-    return JSON.parse(this.safeGet(this.getStorageKey('jan_adn_task')) || '{"loading":false,"progress":0,"status":"","error":null}'); 
+  saveADNTask(t: ADNProcessState): void {
+    this.safeSet(this.getStorageKey('jan_adn_task'), JSON.stringify(t));
+  }
+
+  getADNTask(): ADNProcessState {
+    return JSON.parse(this.safeGet(this.getStorageKey('jan_adn_task')) || '{"loading":false,"progress":0,"status":"","error":null}');
   }
 
   getPendingCampaigns(): PendingCampaign[] {
