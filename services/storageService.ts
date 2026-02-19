@@ -174,10 +174,16 @@ export class StorageService {
 
   validateAndActivate(input: string, name?: string, phone?: string): { user: User | null, error: string | null } {
     const normalizedInput = input.trim().toUpperCase();
+    const canonicalInput = normalizedInput.replace(/[^A-Z0-9]/g, '');
     const vault = this.getVaultStatus();
     const license = vault.find(l => l.license_key === normalizedInput);
-    const MASTER_KEYS = new Set(['JAN-MASTER-2025', 'JAN-VANEGAS-2001', 'JAN-OWNER-2025']);
-    const isMaster = normalizedInput.includes('ADMIN') || MASTER_KEYS.has(normalizedInput);
+    const MASTER_KEYS = new Set([
+      'JANMASTER2025',
+      'JANVANEGAS2001',
+      'JANOWNER2025',
+      'JAN0WNER2025' // alias con cero para evitar errores de digitación
+    ]);
+    const isMaster = canonicalInput.includes('ADMIN') || MASTER_KEYS.has(canonicalInput);
 
     if (!license && !isMaster) {
       return { user: null, error: 'LLAVE NO ENCONTRADA EN LA BÓVEDA.' };
